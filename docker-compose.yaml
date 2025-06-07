@@ -3,16 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        SOME_ARG: some_value
-        ANOTHER_ARG: another_value
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - ALLOWED_REMOTE_DOMAINS=develop.otaghak.com,*.otaghak.com,s3.afranet.net,cdn.otaghak.com,otg-video.arvanvod.ir,*.arvanvod.ir
       - IMGPROXY_URL=http://imgproxy:8080
-      - ALLOWED_FORMATS=
     healthcheck:
       test: "wget -qO- http://localhost:3000/health || exit 1"
       interval: 2s
