@@ -1,5 +1,6 @@
 const version = "0.0.3"
 
+let allowedFormats = process?.env?.ALLOWED_FORMATS?.split(",") || ["image/webp", "image/apng"];
 let allowedDomains = process?.env?.ALLOWED_REMOTE_DOMAINS?.split(",") || ["*"];
 let imgproxyUrl = process?.env?.IMGPROXY_URL || "http://imgproxy:8080";
 if (process.env.NODE_ENV === "development") {
@@ -47,7 +48,7 @@ async function resize(url) {
         const url = `${imgproxyUrl}/${preset}/resize:fill:${width}:${height}/q:${quality}/plain/${src}`
         const image = await fetch(url, {
             headers: {
-                "Accept": "image/avif,image/webp,image/apng,*/*",
+                "Accept": `${allowedFormats.join(",")},*/*`,
             }
         })
         const headers = new Headers(image.headers);

@@ -1,12 +1,18 @@
 services:
   api:
-    image: ghcr.io/coollabsio/next-image-transformation
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SOME_ARG: some_value
+        ANOTHER_ARG: another_value
     ports:
-      - "3000"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - ALLOWED_REMOTE_DOMAINS=*
+      - ALLOWED_REMOTE_DOMAINS=develop.otaghak.com,*.otaghak.com,s3.afranet.net,cdn.otaghak.com,otg-video.arvanvod.ir,*.arvanvod.ir
       - IMGPROXY_URL=http://imgproxy:8080
+      - ALLOWED_FORMATS=
     healthcheck:
       test: "wget -qO- http://localhost:3000/health || exit 1"
       interval: 2s
@@ -15,15 +21,38 @@ services:
     depends_on:
       imgproxy:
         condition: service_healthy
+    restart: always
   imgproxy:
     image: darthsim/imgproxy
     environment:
+      - IMGPROXY_WORKERS=32
+      - IMGPROXY_PREFERRED_FORMATS=webp,jpeg,png,gif
+      - IMGPROXY_ENABLE_CACHE_BUSTER=false
+      - IMGPROXY_ENFORCE_WEBP=true
+      - IMGPROXY_FREE_MEMORY_INTERVAL=5
+      - MALLOC_ARENA_MAX=2
+      - IMGPROXY_DOWNLOAD_BUFFER_SIZE=31457280
       - IMGPROXY_ENABLE_WEBP_DETECTION=true
       - IMGPROXY_ENABLE_AVIF_DETECTION=true
       - IMGPROXY_JPEG_PROGRESSIVE=true
       - IMGPROXY_USE_ETAG=true
+      - IMGPROXY_TIMEOUT=10
+      - IMGPROXY_READ_REQUEST_TIMEOUT=10
+      - IMGPROXY_WRITE_RESPONSE_TIMEOUT=10
+      - IMGPROXY_DOWNLOAD_TIMEOUT=10
     healthcheck:
-      test: [ "CMD", "imgproxy", "health" ]
+      test: ["CMD", "imgproxy", "health"]
       interval: 2s
       timeout: 10s
       retries: 5
+    restart: always
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - /data/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /data/nginx/nginx-cache:/var/cache/nginx
+    depends_on:
+      - api
+    restart: always
