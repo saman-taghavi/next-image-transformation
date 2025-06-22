@@ -46,6 +46,7 @@ async function resize(url) {
     const quality = url.searchParams.get("quality") || 75;
     try {
         const url = `${imgproxyUrl}/${preset}/resize:fill:${width}:${height}/q:${quality}/plain/${src}`
+        // TODO: return proper status code for errors and internal errors
         const image = await fetch(url, {
             headers: {
                 "Accept": `${allowedFormats.join(",")},*/*`,
